@@ -1,30 +1,63 @@
 <div class="registerBox">
-    <div class="wrapper">
-        <form [formGroup]="registerGroup">
-            <h2>Register</h2>
-            <div class="input-field">
-                <input type="text" formControlName="name" required>
-                <label>Enter your name</label>
-            </div>
-            <p *ngIf="registerGroup.controls['name'].invalid && formSubmitStatus" style="color: red;text-align: start;">
-                Name is empty</p>
-            <div class="input-field">
-                <input type="text" formControlName="email" required>
-                <label>Enter your email</label>
-            </div>
-            <p *ngIf="registerGroup.controls['email'].invalid && formSubmitStatus"
-                style="color: red;text-align: start;">
-                email is empty</p>
-            <div class="input-field">
-                <input type="password" formControlName="password" required>
-                <label>Enter your password</label>
-            </div>
-            <p *ngIf="registerGroup.controls['password'].invalid && formSubmitStatus"
-                style="color: red;text-align: start;">password is empty</p>
-            <button type="submit" (click)="sendForm()">Register</button>
-            <div class="register">
-                <p>Already have an account? <a href="#">Login</a></p>
-            </div>
-        </form>
-    </div>
+  <div class="wrapper">
+    <form [formGroup]="registerGroup">
+      <h2>Register</h2>
+      <div class="input-field">
+        <input type="text" formControlName="name" required />
+        <label>Enter your name</label>
+      </div>
+      <p
+        *ngIf="registerGroup.controls['name'].invalid && formSubmitStatus"
+        style="color: red; text-align: start"
+      >
+        Name is empty
+      </p>
+      <div class="input-field">
+        <input type="text" formControlName="email" required />
+        <label>Enter your email</label>
+      </div>
+      <p
+        *ngIf="registerGroup?.controls?.['email']?.errors?.['required'] && formSubmitStatus"
+        style="color: red; text-align: start"
+      >
+        email is empty
+      </p>
+      <p
+        *ngIf="
+        registerGroup?.controls?.['email']?.errors?.['email'] &&
+          formSubmitStatus
+        "
+        style="color: red; text-align: start"
+      >
+        Please enter a valid email address
+      </p>
+      <div class="input-field">
+        <input type="password" formControlName="password" required />
+        <label>Enter your password</label>
+      </div>
+      <p
+        *ngIf="
+          registerGroup?.controls?.['password']?.errors?.['required'] &&
+          formSubmitStatus
+        "
+        style="color: red; text-align: start"
+      >
+        password is empty
+      </p>
+      <p
+        *ngIf="
+        registerGroup?.controls?.['password']?.errors?.['pattern'] &&
+          formSubmitStatus
+        "
+        style="color: rgb(255, 255, 255); text-align: start"
+      >
+        Password must be 8+ characters with uppercase, lowercase, number, and
+        special character.
+      </p>
+      <button type="submit" (click)="sendForm()">Register</button>
+      <div class="register">
+        <p>Already have an account? <a href="#">Login</a></p>
+      </div>
+    </form>
+  </div>
 </div>

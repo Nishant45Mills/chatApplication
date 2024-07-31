@@ -7,7 +7,7 @@ const getUser = catchAsync(async (req, res) => {
     $and: [
       {
         $or: [
-          { name: { $regex: `/^${req.query.search}/` , $options: "i" } },
+          { name: { $regex: `/^${req.query.search}/`, $options: "i" } },
           { email: { $regex: req.query.search, $options: "i" } },
         ],
       },
@@ -18,7 +18,6 @@ const getUser = catchAsync(async (req, res) => {
   user.forEach((data) => {
     data.password = undefined;
   });
-
   res.json(user);
 });
 

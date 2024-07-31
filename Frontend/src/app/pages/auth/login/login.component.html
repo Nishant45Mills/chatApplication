@@ -1,26 +1,84 @@
 <div class="registerBox">
-    <div class="wrapper">
-        <form action="#">
-            <h2>Login</h2>
-            <div class="input-field">
-                <input type="text" required>
-                <label>Enter your email</label>
-            </div>
-            <div class="input-field">
-                <input type="password" required>
-                <label>Enter your password</label>
-            </div>
-            <div class="forget">
-                <label for="remember">
-                    <input type="checkbox" id="remember">
-                    <p class="mb-0">Remember me</p>
-                </label>
-                <a href="#">Forgot password?</a>
-            </div>
-            <button type="submit">Log In</button>
-            <div class="register">
-                <p>Don't have an account? <a routerLink="/auth/register">Register</a></p>
-            </div>
-        </form>
-    </div>
+  <div class="wrapper">
+    <form [formGroup]="loginForm">
+      <h2>Login</h2>
+      <div class="input-field">
+        <input type="text" formControlName="email" required />
+        <label>Enter your email</label>
+      </div>
+      <p
+        *ngIf="loginForm?.controls?.['email']?.errors?.['required'] && formSubmitStatus"
+        style="color: red; text-align: start"
+      >
+        email is empty
+      </p>
+      <p
+        *ngIf="
+      loginForm?.controls?.['email']?.errors?.['email'] &&
+        formSubmitStatus
+      "
+        style="color: red; text-align: start"
+      >
+        Please enter a valid email address
+      </p>
+      <div class="input-field">
+        <input type="password" formControlName="password" required />
+        <label>Enter your password</label>
+      </div>
+      <p
+        *ngIf="loginForm?.controls?.['password']?.errors?.['required'] && formSubmitStatus"
+        style="color: red; text-align: start"
+      >
+        password is empty
+      </p>
+      <p
+        *ngIf="
+    loginForm?.controls?.['password']?.errors?.['pattern'] &&
+      formSubmitStatus
+    "
+        style="color: rgb(255, 255, 255); text-align: start"
+      >
+        Password must be 8+ characters with uppercase, lowercase, number, and
+        special character.
+      </p>
+      <div class="forget">
+        <label for="remember">
+          <input type="checkbox" id="remember" />
+          <p class="mb-0">Remember me</p>
+        </label>
+        <a href="#">Forgot password?</a>
+      </div>
+      <button type="submit" (click)="login()">Log In</button>
+      <div class="mt-3 d-flex justify-content-between">
+        <button
+          class="socialButton d-flex justify-content-center align-items-center"
+        >
+          <img
+            src="../../../../assets/images/google.png"
+            class="me-2"
+            width="20px"
+            alt=""
+          />
+          Google
+        </button>
+
+        <button
+          class="socialButton d-flex justify-content-center align-items-center"
+        >
+          <img
+            src="../../../../assets/images/facebook.png"
+            class="me-2"
+            width="22px"
+            alt=""
+          />
+          Facebook
+        </button>
+      </div>
+      <div class="register">
+        <p>
+          Don't have an account? <a routerLink="/auth/register">Register</a>
+        </p>
+      </div>
+    </form>
+  </div>
 </div>

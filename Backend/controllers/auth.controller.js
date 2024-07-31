@@ -35,7 +35,7 @@ const login = catchAsync(async (req, res) => {
   const userExist = await userModel.findOne({ email });
   console.log(userExist);
   if (!userExist || !(await userExist.matchPassword(password))) {
-    throw new ApiError("Incorrect email or password", 400);
+    throw new ApiError(400, "Incorrect email or password");
   }
   const token = await tokenService.generateToken(userExist);
   userExist.password = undefined;
