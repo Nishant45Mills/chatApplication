@@ -10,6 +10,8 @@ import {
   NgxUiLoaderModule,
   NgxUiLoaderRouterModule,
 } from 'ngx-ui-loader';
+// const socketIoConfig
+import { ModalModule } from 'ngx-bootstrap/modal';
 
 @NgModule({
   declarations: [AppComponent],
@@ -25,6 +27,7 @@ import {
     NgxUiLoaderRouterModule.forRoot({
       showForeground: true,
     }),
+    ModalModule.forRoot(),
   ],
   providers: [],
   bootstrap: [AppComponent],

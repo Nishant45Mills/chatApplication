@@ -24,10 +24,24 @@ export class HttpService {
     return this.http.post(`${this.apiUrl}${url}`, payload);
   }
 
-  getUser(url: string): Observable<any> {
+  get(url: string): Observable<any> {
     const token = localStorage.getItem('token'); // Replace with your token
 
     const headers = new HttpHeaders().set('Authorization', `Bearer ${token}`);
-    return this.http.get(`${this.apiUrl}${url}`,{headers});
+    return this.http.get<any>(`${this.apiUrl}${url}`, { headers });
+  }
+
+  post(url: string, payload: any): Observable<any> {
+    const token = localStorage.getItem('token'); // Replace with your token
+
+    const headers = new HttpHeaders().set('Authorization', `Bearer ${token}`);
+    return this.http.post(`${this.apiUrl}${url}`, payload, { headers });
+  }
+
+  patch(url: string, payload: any) {
+    const token = localStorage.getItem('token'); // Replace with your token
+
+    const headers = new HttpHeaders().set('Authorization', `Bearer ${token}`);
+    return this.http.patch(`${this.apiUrl}${url}`, payload, { headers });
   }
 }

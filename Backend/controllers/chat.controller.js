@@ -54,8 +54,9 @@ const getChatById = catchAsync(async (req, res) => {
 const createGroupChat = catchAsync(async (req, res) => {
   const { chatName, user } = req.body;
 
-  user.push(req.user._id);
+  user.unshift(req.user._id);
   const chat = {
+    active: false,
     chatName: chatName,
     isGroupChat: true,
     users: user,
@@ -87,6 +88,8 @@ const renameGroup = catchAsync(async (req, res) => {
 
 const removeFromGroup = catchAsync(async (req, res) => {
   const { userId } = req.body;
+  console.log(userId);
+
   const groupData = await chatModel
     .findByIdAndUpdate(
       req.params.id,
@@ -113,6 +116,21 @@ const addToGroup = catchAsync(async (req, res) => {
   res.json(groupData);
 });
 
+const updateStatus = catchAsync(async (req, res) => {
+  const { chatId } = req.body;
+  console.log(chatId);
+  await chatModel.findByIdAndUpdate(chatId, { active: true });
+  await chatModel.updateMany(
+    { _id: { $ne: chatId } }, // Exclude the target document
+    { active: false }
+  );
+  const result = await chatModel
+    .findOne({ _id: chatId })
+    .populate("users", "-password")
+    .populate("groupAdmin", "-password");
+  res.json(result);
+});
+
 module.exports = {
   createChat,
   fetchChat,
@@ -120,5 +138,6 @@ module.exports = {
   renameGroup,
   removeFromGroup,
   addToGroup,
-  getChatById
+  getChatById,
+  updateStatus,
 };

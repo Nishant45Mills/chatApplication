@@ -7,7 +7,7 @@ const getUser = catchAsync(async (req, res) => {
     $and: [
       {
         $or: [
-          { name: { $regex: `/^${req.query.search}/`, $options: "i" } },
+          { name: { $regex: req.query.search, $options: "i" } },
           { email: { $regex: req.query.search, $options: "i" } },
         ],
       },
@@ -21,4 +21,9 @@ const getUser = catchAsync(async (req, res) => {
   res.json(user);
 });
 
-module.exports = { getUser };
+const getProfile = catchAsync(async (req, res) => {
+  const user = await userModel.find({ _id: req.user._id });
+  res.json(user);
+});
+
+module.exports = { getUser, getProfile };

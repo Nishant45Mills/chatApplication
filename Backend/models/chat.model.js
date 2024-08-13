@@ -28,6 +28,11 @@ const chatModel = mongoose.Schema(
       type: mongoose.Types.ObjectId,
       ref: "User",
     },
+
+    active: {
+      type: Boolean,
+      default: false,
+    },
   },
   {
     timestamps: true,
