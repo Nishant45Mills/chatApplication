@@ -32,13 +32,21 @@ const createChat = catchAsync(async (req, res) => {
     res.json(fetchChat);
   }
 });
-
+{
+  $sort: {
+    createdAt: -1;
+  }
+}
 const fetchChat = catchAsync(async (req, res) => {
   const fetchingChats = await chatModel
     .find({ users: { $elemMatch: { $eq: req.user._id } } })
+    .sort({
+      createdAt: -1,
+    })
     .populate("users", "-password")
     .populate("groupAdmin", "-password")
     .populate("latestMessage");
+
   res.json(fetchingChats);
 });
 

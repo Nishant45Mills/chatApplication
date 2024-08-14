@@ -24,7 +24,6 @@ export class HomeComponent implements OnInit {
   groupUsers: any = [];
   searchControl = new FormControl();
   addUserControl = new FormControl();
-  chat: any = {};
   chats: any = [];
   groupAdmin: any;
   chatDetails: any;
@@ -56,6 +55,13 @@ export class HomeComponent implements OnInit {
       next: (data) => {
         console.log(data);
         this.chats = data;
+        this.chats.map((data: any) => {
+          if (data.active) {
+            this.chatDetails = data;
+            this.groupUsers = data.users;
+            this.groupAdmin = data.groupAdmin;
+          }
+        });
       },
       error: (error) => {
         console.log(error);
@@ -67,7 +73,7 @@ export class HomeComponent implements OnInit {
     this.searchControl.valueChanges
       .pipe(
         debounceTime(500),
-        tap((data) => (this.userStatus = data.length > 0)),
+        tap((data) => (this.userStatus = data?.length > 0)),
         switchMap((term) => this.http.get(`user?search=${term}`))
       )
       .subscribe((data) => {
@@ -101,6 +107,7 @@ export class HomeComponent implements OnInit {
 
   sendMessage() {
     this.sockethttp.sendMessage(this.messageText.value);
+    // this.http.post('message',)
     this.messageText.reset();
   }
 
@@ -108,13 +115,15 @@ export class HomeComponent implements OnInit {
     this.http.post(`chat`, { userId }).subscribe({
       next: (data) => {
         console.log(data);
-        this.chat = data;
+        this.selectUser(data);
+        this.searchControl?.reset();
+        this.fetchChats();
+        this.userStatus = false;
       },
     });
   }
 
   getCurrentUser(user: any, i: any) {
-    
     if (user?.isGroupChat) {
       return user.chatName;
     }
@@ -189,7 +198,6 @@ export class HomeComponent implements OnInit {
 
   createGroupChat() {
     this.groupSubmitFlag = true;
-
     if (this.createGroup.valid) {
       const payload = {
         chatName: this.createGroup.value.chatName,
@@ -205,6 +213,9 @@ export class HomeComponent implements OnInit {
         next: (data) => {
           this.fetchChats();
           this.modalRef?.hide();
+          this.groupSubmitFlag = false;
+          this.createGroup.reset();
+          this.groupUserList = [];
           this.tostr.success('Group created successfully');
         },
         error: (error) => {
