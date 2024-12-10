@@ -1,0 +1,11 @@
+const ErrorHandler = (err, req, res, next) => {
+  const statusCode = err.statusCode;
+  const message = err.message;    
+  res.json({
+    status: statusCode,
+    message: message,
+    stack: process.env.NODE_ENV === "development" ? err.stack : {},
+  });
+};
+
+module.exports = ErrorHandler;
