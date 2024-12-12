@@ -1,7 +1,18 @@
 import React from "react";
-import { NavLink } from "react-router-dom";
+import { data, NavLink } from "react-router-dom";
+import { useForm } from "react-hook-form";
 
 function Login() {
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+  } = useForm();
+
+  const onSubmit = (data) => {
+    console.log(data);
+  };
+
   return (
     <>
       <section
@@ -30,7 +41,10 @@ function Login() {
               <h1 className="text-xl font-bold leading-tight tracking-tight text-gray-900 md:text-2xl dark:text-white">
                 Sign in to your account
               </h1>
-              <form className="space-y-4 md:space-y-6" action="#">
+              <form
+                className="space-y-4 md:space-y-6"
+                onSubmit={handleSubmit(onSubmit)}
+              >
                 <div>
                   <label
                     htmlFor="email"
@@ -39,6 +53,13 @@ function Login() {
                     Your email
                   </label>
                   <input
+                    {...register("email", {
+                      required: true,
+                      pattern: {
+                        value: "/^[A-Z0-9._%+-]+@[A-Z0-9.-]+.[A-Z]{2,}$/i",
+                        message: "Email is incorrect",
+                      },
+                    })}
                     type="email"
                     name="email"
                     id="email"
@@ -46,6 +67,7 @@ function Login() {
                     placeholder="name@company.com"
                     required=""
                   />
+                  {console.log(errors)}
                 </div>
                 <div>
                   <label
@@ -55,6 +77,7 @@ function Login() {
                     Password
                   </label>
                   <input
+                    {...register("password", { required: true })}
                     type="password"
                     name="password"
                     id="password"
@@ -90,7 +113,9 @@ function Login() {
                     Forgot password?
                   </a>
                 </div>
-                <button className="bg-sky-400 w-full">Log In</button>
+                <button className="bg-sky-400 w-full" type="submit">
+                  Log In
+                </button>
                 <p className="text-sm font-light text-gray-500 dark:text-gray-400">
                   Don’t have an account yet?{" "}
                   <NavLink

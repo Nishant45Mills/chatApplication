@@ -1,7 +1,33 @@
 import React from "react";
-import { NavLink } from "react-router-dom";
+import { useForm } from "react-hook-form";
+import { NavLink, useNavigate } from "react-router-dom";
+import axios from "axios";
+import { securePost } from "../../HttpService/APIService";
+import { toast } from "react-toastify";
 
 function Register() {
+  const {
+    register,
+    handleSubmit,
+    watch,
+    reset,
+    formState: { errors },
+  } = useForm();
+
+  const navigate = useNavigate();
+
+  const onsubmit = (data) => {
+    delete data.confirmPassword;
+    securePost("/register", data)
+      .then((result) => {
+        console.log(result);
+        toast.success("User Register successfully");
+        reset();
+        navigate("/login");
+      })
+      .catch((error) => console.log(error));
+  };
+
   return (
     <>
       <section className="w-196 bg-gray-400 dark:bg-gray-900 flex items-center p-4 rounded-xl">
@@ -14,7 +40,10 @@ function Register() {
               <h1 className="text-xl font-bold leading-tight tracking-tight text-gray-900 md:text-2xl dark:text-white">
                 Sign up
               </h1>
-              <form className="space-y-4 md:space-y-6" action="#">
+              <form
+                className="space-y-4 md:space-y-6"
+                onSubmit={handleSubmit(onsubmit)}
+              >
                 <div className="mt-6">
                   <label
                     htmlFor="userName"
@@ -23,6 +52,7 @@ function Register() {
                     Username
                   </label>
                   <input
+                    {...register("username", { required: true })}
                     type="text"
                     name="username"
                     id="username"
@@ -30,6 +60,11 @@ function Register() {
                     placeholder="nishant jarang"
                     required=""
                   />
+                  {errors?.username?.type == "required" && (
+                    <p className="text-red-600 text-start">
+                      Username is required
+                    </p>
+                  )}
                 </div>
 
                 <div>
@@ -40,13 +75,22 @@ function Register() {
                     Your email
                   </label>
                   <input
+                    {...register("email", {
+                      required: true,
+                      pattern: {
+                        value: "/^[A-Z0-9._%+-]+@[A-Z0-9.-]+.[A-Z]{2,4}$/i;",
+                        message: "Invalid email address",
+                      },
+                    })}
                     type="email"
                     name="email"
                     id="email"
                     className="bg-gray-50 border border-gray-300 text-gray-900 rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
                     placeholder="name@company.com"
-                    required=""
                   />
+                  {errors.email && (
+                    <p className="text-red-600 text-start">email is required</p>
+                  )}
                 </div>
                 <div>
                   <label
@@ -56,6 +100,13 @@ function Register() {
                     Password
                   </label>
                   <input
+                    {...register("password", {
+                      required: true,
+                      minLength: {
+                        value: 7,
+                        message: "Password must be at least 7 characters long",
+                      },
+                    })}
                     type="password"
                     name="password"
                     id="password"
@@ -63,6 +114,16 @@ function Register() {
                     className="bg-gray-50 border border-gray-300 text-gray-900 rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
                     required=""
                   />
+                  {errors.password?.type == "required" && (
+                    <p className="text-red-600 text-start">
+                      Password is required
+                    </p>
+                  )}
+                  {errors.password?.type == "minLength" && (
+                    <p className="text-red-600 text-start">
+                      {errors.password.message}
+                    </p>
+                  )}
                 </div>
 
                 <div>
@@ -73,6 +134,13 @@ function Register() {
                     Confirm Password
                   </label>
                   <input
+                    {...register("confirmPassword", {
+                      validate: (val) => {
+                        if (watch("password") != val) {
+                          return "Your passwords do no match";
+                        }
+                      },
+                    })}
                     type="password"
                     name="confirmPassword"
                     id="confirmPassword"
@@ -80,6 +148,11 @@ function Register() {
                     className="bg-gray-50 border border-gray-300 text-gray-900 rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
                     required=""
                   />
+                  {errors.confirmPassword?.type == "validate" && (
+                    <p className="text-red-600 text-start">
+                      {errors.confirmPassword.message}
+                    </p>
+                  )}
                 </div>
                 <div className="flex items-center justify-between">
                   <div className="flex items-start">
@@ -115,7 +188,9 @@ function Register() {
                   Sign in
                 </button> */}
 
-                <button className="bg-sky-400 w-full">Log In</button>
+                <button className="bg-sky-400 w-full" type="submit">
+                  Sign Up
+                </button>
                 <p className="text-sm font-light text-gray-500 dark:text-gray-400">
                   Don’t have an account yet?{" "}
                   <NavLink

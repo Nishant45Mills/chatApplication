@@ -9,11 +9,26 @@ const registerUser = asyncHandler(async (req, res, next) => {
   if (userExist) {
     const error = new Error("User already register");
     error.statusCode = 409;
-    return next(error);
+    next(error);
+  } else {
+    const user = await userModel.create(req.body);
+    user.password = undefined;
+    res.json({ user, token: generateToken({ user }) });
   }
-  const user = await userModel.create(req.body);
-  const token = generateToken({ user });
-  res.json({ user, token });
 });
 
-module.exports = { registerUser };
+const loginUser = asyncHandler(async (req, res, next) => {
+  const { email, password } = req.body;
+
+  const userExist = await userModel.findOne({ email });
+  if (userExist && (await userExist.matchPassword(password))) {
+    userExist.password = undefined;
+    res.json({ user: userExist, token: generateToken({ userExist }) });
+  } else {
+    const error = new Error("User not registered. Please sign up first.");
+    error.statusCode = 404;
+    next(error);
+  }
+});
+
+module.exports = { registerUser, loginUser };
