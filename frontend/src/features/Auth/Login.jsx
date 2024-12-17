@@ -9,6 +9,8 @@ function Login() {
     formState: { errors },
   } = useForm();
 
+  console.log(window.location.origin);
+
   const onSubmit = (data) => {
     console.log(data);
   };
