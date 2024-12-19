@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { NavLink, useNavigate } from "react-router-dom";
 import axios from "axios";
@@ -15,11 +15,9 @@ function Register() {
     formState: { errors },
   } = useForm();
 
-  const { user, isAuthenticated, logout, loginWithRedirect } = useAuth0();
-  console.log(user);
+  const { user, isAuthenticated, loginWithRedirect, logout } = useAuth0();
 
   const navigate = useNavigate();
-
   const onsubmit = (data) => {
     delete data.confirmPassword;
     securePost("/register", data)
@@ -34,13 +32,6 @@ function Register() {
 
   return (
     <>
-      <button
-        onClick={() =>
-          logout({ logoutParams: { returnTo: window.location.origin } })
-        }
-      >
-        logout
-      </button>
       <section className="w-196 bg-gray-400 dark:bg-gray-900 flex items-center p-4 rounded-xl">
         <div
           className="flex flex-col items-center justify-center px-6 py-8 mx-auto lg:py-0"

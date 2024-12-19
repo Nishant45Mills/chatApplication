@@ -12,9 +12,9 @@ createRoot(document.getElementById("root")).render(
     <BrowserRouter>
       <Auth0Provider
         domain="dev-7jaie2uzjs4s4hod.us.auth0.com"
-        clientId="wYuKplfofzxEahTCWeOKEDZPWhH0cGtH"
+        clientId="iHzkR6rPL5HVko9n3YYtrVxGJi1OKX8M"
         authorizationParams={{
-          redirect_uri: window.location.origin,
+          redirect_uri: window.location.origin+'/dashboard'
         }}
       >
         <App />

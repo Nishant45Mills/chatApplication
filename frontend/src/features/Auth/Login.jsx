@@ -1,6 +1,8 @@
-import React from "react";
-import { data, NavLink } from "react-router-dom";
+import React, { useEffect } from "react";
+import { data, NavLink, useNavigate } from "react-router-dom";
 import { useForm } from "react-hook-form";
+import { securePost } from "../../HttpService/APIService";
+import { toast } from "react-toastify";
 
 function Login() {
   const {
@@ -9,10 +11,26 @@ function Login() {
     formState: { errors },
   } = useForm();
 
-  console.log(window.location.origin);
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    if (JSON.parse(localStorage.getItem("user"))) {
+      navigate("/dashboard");
+    }
+  }, []);
 
   const onSubmit = (data) => {
-    console.log(data);
+    securePost("/login", data)
+      .then((result) => {
+        console.log(result);
+        localStorage.setItem("user", JSON.stringify(result.data.user));
+        toast.success("User Login successfully");
+        navigate("/dashboard");
+      })
+      .catch((error) => {
+        console.log(error.response.data);
+        toast.error(error.response.data.message);
+      });
   };
 
   return (
@@ -69,7 +87,6 @@ function Login() {
                     placeholder="name@company.com"
                     required=""
                   />
-                  {console.log(errors)}
                 </div>
                 <div>
                   <label
