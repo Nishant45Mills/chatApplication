@@ -14,7 +14,6 @@ function ProtectedRoute({ children }) {
 function PublicRoute({ children }) {
   const navigate = useNavigate();
 
-  
   if (JSON.parse(localStorage.getItem("user"))) {
     return <Navigate to="/dashboard" />;
   } else {

@@ -28,4 +28,22 @@ const loginUser = asyncHandler(async (req, res, next) => {
   }
 });
 
-module.exports = { registerUser, loginUser };
+const getUser = asyncHandler(async (req, res) => {
+  console.log(req.query.search);
+
+  const keyword = req.query.search
+    ? {
+        $or: [
+          {
+            username: { $regex: req.query.search, $options: "i" },
+          },
+          { email: { $regex: req.query.search, $options: "i" } },
+        ],
+      }
+    : {};
+
+  const user = await userModel.find(keyword);
+  console.log(user);
+});
+
+module.exports = { registerUser, loginUser, getUser };
