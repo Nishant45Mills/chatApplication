@@ -20,7 +20,7 @@ function Register() {
   const navigate = useNavigate();
   const onsubmit = (data) => {
     delete data.confirmPassword;
-    securePost("/register", data)
+    securePost("/auth/register", data)
       .then((result) => {
         console.log(result);
         toast.success("User Register successfully");

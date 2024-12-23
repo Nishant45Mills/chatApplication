@@ -7,7 +7,7 @@ function Dashboard() {
   const navigate = useNavigate();
 
   const logOut = () => {
-    localStorage.removeItem("user");
+    localStorage.removeItem("token");
     navigate("/login");
   };
 

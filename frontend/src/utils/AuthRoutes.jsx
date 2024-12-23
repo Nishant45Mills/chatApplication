@@ -4,7 +4,7 @@ import { Navigate, useNavigate } from "react-router-dom";
 function ProtectedRoute({ children }) {
   const navigate = useNavigate();
 
-  if (!JSON.parse(localStorage.getItem("user"))) {
+  if (!JSON.parse(localStorage.getItem("token"))) {
     return <Navigate to="/login" />;
   } else {
     return children;
@@ -14,7 +14,7 @@ function ProtectedRoute({ children }) {
 function PublicRoute({ children }) {
   const navigate = useNavigate();
 
-  if (JSON.parse(localStorage.getItem("user"))) {
+  if (JSON.parse(localStorage.getItem("token"))) {
     return <Navigate to="/dashboard" />;
   } else {
     return children;
