@@ -5,6 +5,8 @@ const router = express.Router();
 
 router.use(verifyToken);
 
-router.route("/:userId").post(chatController.createChat);
+router.route("/").get(chatController.fetchChat).post(chatController.createChat);
+router.route("/group").post(chatController.createGroupChat);
+router.route("/renameGroup").patch(chatController.renameGroup);
 
 module.exports = router;
