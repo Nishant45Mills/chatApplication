@@ -77,4 +77,49 @@ const renameGroup = asyncHandler(async (req, res) => {
   res.json({ chat: groupChat });
 });
 
-module.exports = { createChat, fetchChat, createGroupChat, renameGroup };
+const addToGroup = asyncHandler(async (req, res) => {
+  const { chatId, userId } = req.body;
+  console.log("working fine");
+
+  const groupChat = await chatModel
+    .findByIdAndUpdate(
+      chatId,
+      {
+        $push: { users: userId },
+      },
+      { new: true }
+    )
+    .populate([
+      { path: "users", select: "-password" },
+      { path: "isGroupAdmin", select: "-password" },
+    ]);
+  res.json({ chat: groupChat });
+});
+
+const removeFromGroup = asyncHandler(async (req, res) => {
+  const { chatId, userId } = req.body;
+  console.log("working fine");
+
+  const groupChat = await chatModel
+    .findByIdAndUpdate(
+      chatId,
+      {
+        $pull: { users: userId },
+      },
+      { new: true }
+    )
+    .populate([
+      { path: "users", select: "-password" },
+      { path: "isGroupAdmin", select: "-password" },
+    ]);
+  res.json({ chat: groupChat });
+});
+
+module.exports = {
+  createChat,
+  fetchChat,
+  createGroupChat,
+  renameGroup,
+  addToGroup,
+  removeFromGroup,
+};
