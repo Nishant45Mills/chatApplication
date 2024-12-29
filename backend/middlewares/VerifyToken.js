@@ -3,7 +3,7 @@ const ApiError = require("../utils/ApiError");
 
 const verifyToken = (req, res, next) => {
   let tokenInfo = req.headers.authorization;
-
+  
   if (tokenInfo) {
     const token = tokenInfo.split(" ")[1];
     jwt.verify(token, process.env.TOKEN_SECRET, (err, data) => {

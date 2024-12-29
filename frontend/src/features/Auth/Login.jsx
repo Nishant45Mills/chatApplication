@@ -28,6 +28,7 @@ function Login() {
       .then((result) => {
         console.log(result);
         localStorage.setItem("token", JSON.stringify(result.data.token));
+        localStorage.setItem("user", JSON.stringify(result.data.user));
         toast.success("User Login successfully");
         navigate("/dashboard");
       })

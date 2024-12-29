@@ -39,7 +39,6 @@ const fetchChat = asyncHandler(async (req, res) => {
     })
     .populate("users", "-password")
     .sort({ updatedAt: -1 });
-  console.log(chat);
 
   res.json({ chats: chat });
 });
@@ -79,7 +78,6 @@ const renameGroup = asyncHandler(async (req, res) => {
 
 const addToGroup = asyncHandler(async (req, res) => {
   const { chatId, userId } = req.body;
-  console.log("working fine");
 
   const groupChat = await chatModel
     .findByIdAndUpdate(
@@ -98,7 +96,6 @@ const addToGroup = asyncHandler(async (req, res) => {
 
 const removeFromGroup = asyncHandler(async (req, res) => {
   const { chatId, userId } = req.body;
-  console.log("working fine");
 
   const groupChat = await chatModel
     .findByIdAndUpdate(
