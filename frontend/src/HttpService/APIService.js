@@ -14,4 +14,12 @@ function secureGet(url) {
   return axios.get(`${baseUrl}${url}`, { headers });
 }
 
-export { securePost, secureGet };
+function post(url, payload) {
+  const headers = {
+    Authorization: `Bearer ${JSON.parse(localStorage.getItem("token"))}`,
+  };
+
+  return axios.post(`${baseUrl}${url}`, payload, { headers });
+}
+
+export { securePost, secureGet, post };
