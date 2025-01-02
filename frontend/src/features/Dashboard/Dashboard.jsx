@@ -10,10 +10,10 @@ function Dashboard() {
   const { user, isAuthenticated, logout } = useAuth0();
   const [chat, setChat] = useState([]);
   const [user1, setUser1] = useState([]);
-  const [loggedInId, setLoggedInId] = useState("");
+  const [loggedInId, setLoggedInId] = useState(""); //
   const [searchUser, setSearchUser] = useState("");
   const [value] = useDebounce(searchUser, 800);
-  const [selectName, setSelectName] = useState("");
+  const [selectName, setSelectName] = useState(null);
   const inputRef = useRef(null);
   const navigate = useNavigate();
   // console.log(selectChat);
@@ -21,8 +21,16 @@ function Dashboard() {
   const fetchChats = () => {
     secureGet(`/chat`)
       .then((res) => {
+        res.data.chats[0].isSelected = true;
         setChat(res.data.chats);
-        res.data.chats[0].selected = true;
+        console.log(res.data.chats);
+        // if (selectName !== "") {
+        //   res.data.chats[0].selected = false;
+        // } else {
+        //   res.data.chats[0].selected = true;
+        // }
+
+        // console.log();
       })
       .catch((error) => {
         console.log(error);
@@ -53,7 +61,14 @@ function Dashboard() {
       });
   };
 
+  const selectChat = (index) => {
+    console.log(index);
+    chat[index].isSelected = true;
+    setChat(chat);
+  };
+
   useEffect(() => {
+    //
     setLoggedInId(JSON.parse(localStorage.getItem("user"))._id);
     fetchChats();
   }, []);
@@ -160,12 +175,20 @@ function Dashboard() {
                       <div
                         className={`flex flex-col space-y-1 mt-4 -mx-2`}
                         key={i}
-                        onClick={() => setSelectName(data.users[1].username)}
                       >
                         <button
                           className={`${
-                            data.selected == true ? "bg-indigo-100" : ""
-                          } focus:outline-none focus:bg-indigo-100 hover:border-transparent hover:bg-gray-200 flex flex-row items-center rounded-xl p-2 `}
+                            selectName == data
+                              ? "bg-indigo-100 focus:outline-none hover:bg-indigo-100"
+                              : ""
+                          } ${
+                            selectName == null
+                              ? data.isSelected == true
+                                ? "bg-indigo-100 focus:outline-none hover:bg-indigo-100"
+                                : ""
+                              : ""
+                          } focus:outline-none hover:border-transparent hover:bg-gray-200 flex flex-row items-center rounded-xl p-2 `}
+                          onClick={() => setSelectName(data)}
                         >
                           <div className="flex items-center justify-center h-8 w-8 bg-indigo-200 rounded-full">
                             H
@@ -198,7 +221,6 @@ function Dashboard() {
                     );
                   })
                 )}
-
                 <div className="flex flex-row items-center justify-between text-xs mt-6">
                   <span className="font-bold">Archivied</span>
                   <span className="flex items-center justify-center bg-gray-300 h-4 w-4 rounded-full">
@@ -218,20 +240,8 @@ function Dashboard() {
             <div className="flex flex-col flex-auto h-full p-6">
               <div className="flex flex-col flex-auto flex-shrink-0 rounded-2xl bg-gray-100 h-full p-4 ">
                 <div className="flex flex-col h-full overflow-x-auto mb-4">
-                  <div className="flex flex-col h-full relative">
-                    <div className="p-3 rounded-lg absolute w-full bg-gray-300 flex justify-between">
-                      {/* <div className="flex items-start gap-3">
-                        <div className="bg-white rounded-full">
-                          <img
-                            class="w-10 h-10 rounded-full"
-                            src={RohitImage}
-                            alt="Rounded avatar"
-                          />
-                        </div>
-
-                        <h2>Nishant jarang</h2>
-                      </div> */}
-
+                  <div className="flex flex-col h-full">
+                    <div className="p-3 rounded-lg w-full bg-gray-300 flex justify-between sticky top-0">
                       <div className="flex items-center gap-4">
                         <img
                           className="w-10 h-10 rounded-full"
@@ -240,9 +250,9 @@ function Dashboard() {
                         />
                         <div className="font-medium dark:text-white text-start">
                           <div>
-                            {selectName == ""
+                            {selectName == null
                               ? chat[0]?.users[1]?.username
-                              : selectName}
+                              : selectName.users[1]?.username}
                           </div>
                           <div className="text-sm text-gray-500 dark:text-gray-400">
                             Joined in August 2014
@@ -267,7 +277,7 @@ function Dashboard() {
                           <div className="flex items-center justify-center h-10 w-10 rounded-full bg-indigo-500 flex-shrink-0">
                             A
                           </div>
-                          <div className="relative ml-3 text-sm bg-white py-2 px-4 shadow rounded-xl">
+                          <div className=" ml-3 text-sm bg-white py-2 px-4 shadow rounded-xl">
                             <div>Hey How are you today?</div>
                           </div>
                         </div>
@@ -277,7 +287,7 @@ function Dashboard() {
                           <div className="flex items-center justify-center h-10 w-10 rounded-full bg-indigo-500 flex-shrink-0">
                             A
                           </div>
-                          <div className="relative ml-3 text-sm bg-white py-2 px-4 shadow rounded-xl">
+                          <div className=" ml-3 text-sm bg-white py-2 px-4 shadow rounded-xl">
                             <div>
                               Lorem ipsum dolor sit amet, consectetur
                               adipisicing elit. Vel ipsa commodi illum saepe
@@ -292,7 +302,7 @@ function Dashboard() {
                           <div className="flex items-center justify-center h-10 w-10 rounded-full bg-indigo-500 flex-shrink-0">
                             A
                           </div>
-                          <div className="relative mr-3 text-sm bg-indigo-100 py-2 px-4 shadow rounded-xl">
+                          <div className=" mr-3 text-sm bg-indigo-100 py-2 px-4 shadow rounded-xl">
                             <div>I'm ok what about you?</div>
                           </div>
                         </div>
@@ -302,7 +312,7 @@ function Dashboard() {
                           <div className="flex items-center justify-center h-10 w-10 rounded-full bg-indigo-500 flex-shrink-0">
                             A
                           </div>
-                          <div className="relative mr-3 text-sm bg-indigo-100 py-2 px-4 shadow rounded-xl">
+                          <div className=" mr-3 text-sm bg-indigo-100 py-2 px-4 shadow rounded-xl">
                             <div>
                               Lorem ipsum dolor sit, amet consectetur
                               adipisicing. ?
@@ -315,7 +325,7 @@ function Dashboard() {
                           <div className="flex items-center justify-center h-10 w-10 rounded-full bg-indigo-500 flex-shrink-0">
                             A
                           </div>
-                          <div className="relative ml-3 text-sm bg-white py-2 px-4 shadow rounded-xl">
+                          <div className=" ml-3 text-sm bg-white py-2 px-4 shadow rounded-xl">
                             <div>Lorem ipsum dolor sit amet !</div>
                           </div>
                         </div>
@@ -325,14 +335,14 @@ function Dashboard() {
                           <div className="flex items-center justify-center h-10 w-10 rounded-full bg-indigo-500 flex-shrink-0">
                             A
                           </div>
-                          <div className="relative mr-3 text-sm bg-indigo-100 py-2 px-4 shadow rounded-xl">
+                          <div className=" mr-3 text-sm bg-indigo-100 py-2 px-4 shadow rounded-xl">
                             <div>
                               Lorem ipsum dolor sit, amet consectetur
                               adipisicing. ?
                             </div>
-                            <div className="absolute text-xs bottom-0 right-0 -mb-5 mr-2 text-gray-500">
+                            {/* <div className="text-xs bottom-0 right-0 -mb-5 mr-2 text-gray-500">
                               Seen
-                            </div>
+                            </div> */}
                           </div>
                         </div>
                       </div>
@@ -341,7 +351,7 @@ function Dashboard() {
                           <div className="flex items-center justify-center h-10 w-10 rounded-full bg-indigo-500 flex-shrink-0">
                             A
                           </div>
-                          <div className="relative ml-3 text-sm bg-white py-2 px-4 shadow rounded-xl">
+                          <div className=" ml-3 text-sm bg-white py-2 px-4 shadow rounded-xl">
                             <div>
                               Lorem ipsum dolor sit amet consectetur adipisicing
                               elit. Perspiciatis, in.
@@ -354,7 +364,7 @@ function Dashboard() {
                           <div className="flex items-center justify-center h-10 w-10 rounded-full bg-indigo-500 flex-shrink-0">
                             A
                           </div>
-                          <div className="relative ml-3 text-sm bg-white py-2 px-4 shadow rounded-xl">
+                          <div className=" ml-3 text-sm bg-white py-2 px-4 shadow rounded-xl">
                             <div className="flex flex-row items-center">
                               <button className="flex items-center justify-center bg-indigo-600 hover:bg-indigo-800 rounded-full h-8 w-10">
                                 <svg
