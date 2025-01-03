@@ -5,38 +5,34 @@ import { post, secureGet, securePost } from "../../HttpService/APIService";
 import { useDebounce } from "use-debounce";
 import { TailSpin } from "react-loader-spinner";
 import RohitImage from "../../../public/Rohit.png";
+import { toast } from "react-toastify";
 
 function Dashboard() {
   const { user, isAuthenticated, logout } = useAuth0();
   const [chat, setChat] = useState([]);
   const [user1, setUser1] = useState([]);
-  const [loggedInId, setLoggedInId] = useState(""); //
+  const [dropdownStatus, setDropdownStatus] = useState(false);
+  const [loggedInId, setLoggedInId] = useState("");
   const [searchUser, setSearchUser] = useState("");
   const [value] = useDebounce(searchUser, 800);
   const [selectName, setSelectName] = useState(null);
   const inputRef = useRef(null);
+  const dropdownRef = useRef(null);
   const navigate = useNavigate();
-  // console.log(selectChat);
 
+  //fetching chats API call
   const fetchChats = () => {
     secureGet(`/chat`)
       .then((res) => {
         res.data.chats[0].isSelected = true;
         setChat(res.data.chats);
-        console.log(res.data.chats);
-        // if (selectName !== "") {
-        //   res.data.chats[0].selected = false;
-        // } else {
-        //   res.data.chats[0].selected = true;
-        // }
-
-        // console.log();
       })
       .catch((error) => {
         console.log(error);
       });
   };
 
+  //fetching user API call
   const fetchUserByName = () => {
     secureGet(`/user?search=${searchUser}`)
       .then((res) => {
@@ -47,6 +43,7 @@ function Dashboard() {
       });
   };
 
+  //creating new chat
   const createChat = (userId) => {
     console.log(userId);
     post(`/chat`, { userId })
@@ -67,29 +64,41 @@ function Dashboard() {
     setChat(chat);
   };
 
+  const handleDocumentClick = (event) => {
+    if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+      setDropdownStatus(false); // Close the dropdown if clicked outside
+    }
+  };
+
+  //fetching chats
   useEffect(() => {
-    //
     setLoggedInId(JSON.parse(localStorage.getItem("user"))._id);
     fetchChats();
   }, []);
 
+  //fetching users
   useEffect(() => {
     fetchUserByName();
   }, [value]);
 
+  //handle dropdown
+  useEffect(() => {
+    document.addEventListener("mousedown", handleDocumentClick);
+    return () => {
+      document.removeEventListener("mousedown", handleDocumentClick);
+    };
+  }, []);
+
+  //Logout current user
   const logOut = () => {
     localStorage.removeItem("token");
+    localStorage.removeItem("user");
+    toast.success("User logout successfully");
     navigate("/login");
   };
 
   return (
     <>
-      {/* <NavLink
-        onClick={logOut}
-        className="focus:outline-none text-white bg-red-700 hover:bg-red-800 focus:ring-4 focus:ring-red-300 font-medium rounded-lg text-sm px-5 py-2.5 me-2 mb-2 dark:bg-red-600 dark:hover:bg-red-700 dark:focus:ring-red-900"
-      >
-        logout
-      </NavLink> */}
       <div className="flex w-screen h-screen bg-sky-300 content-center items-center">
         <div className="flex h-screen antialiased text-gray-800">
           <div className="flex flex-row h-full w-full overflow-x-hidden">
@@ -150,6 +159,75 @@ function Dashboard() {
                     />
                   </div>
                 </form>
+
+                <div className="flex justify-between items-center my-2 px-2 relative">
+                  <p className="text-3xl">Chats</p>
+                  {/* <i class="fa-solid fa-ellipsis-vertical text-2xl cursor-pointer"></i> */}
+
+                  <button
+                    onClick={() => setDropdownStatus(!dropdownStatus)}
+                    id="dropdownMenuIconButton"
+                    data-dropdown-toggle="dropdownDots"
+                    data-dropdown-placement="bottom-start"
+                    className="inline-flex self-center items-center p-2 text-sm font-medium text-center text-gray-900 bg-white rounded-lg hover:bg-gray-100 focus:ring-4 focus:outline-none dark:text-white focus:ring-gray-200 dark:bg-gray-900 dark:hover:bg-gray-800 dark:focus:ring-gray-600"
+                    type="button"
+                  >
+                    <svg
+                      className="w-4 h-4 text-gray-500 dark:text-gray-400"
+                      aria-hidden="true"
+                      xmlns="http://www.w3.org/2000/svg"
+                      fill="currentColor"
+                      viewBox="0 0 4 15"
+                    >
+                      <path d="M3.5 1.5a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0Zm0 6.041a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0Zm0 5.959a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0Z" />
+                    </svg>
+                  </button>
+
+                  <div
+                    ref={dropdownRef}
+                    id="dropdownDots"
+                    className={`${
+                      !dropdownStatus ? "hidden" : ""
+                    } absolute z-10 top-10 right-2  bg-white divide-y divide-gray-100 rounded-lg shadow w-44 dark:bg-gray-700 dark:divide-gray-600`}
+                  >
+                    <ul
+                      className="py-2 cursor-pointer text-sm text-gray-700 dark:text-gray-200"
+                      aria-labelledby="dropdownMenuIconButton"
+                    >
+                      <li>
+                        <a
+                          onClick={() => setDropdownStatus(false)}
+                          className="block text-gray-600 hover:text-gray-600 text-start px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white"
+                        >
+                          New group
+                        </a>
+                      </li>
+                      <li>
+                        <a
+                          onClick={() => setDropdownStatus(false)}
+                          className="block text-gray-600 hover:text-gray-600 text-start px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white"
+                        >
+                          Starred messages
+                        </a>
+                      </li>
+                      <li>
+                        <a
+                          onClick={logOut}
+                          className="block text-gray-600 hover:text-gray-600 text-start px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white"
+                        >
+                          Log out
+                        </a>
+                      </li>
+                    </ul>
+                    {/* <div className="py-2">
+                      <a
+                        className="block text-gray-600 px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 dark:hover:bg-gray-600 dark:text-gray-200 dark:hover:text-white"
+                      >
+                        Separated link
+                      </a>
+                    </div> */}
+                  </div>
+                </div>
                 {searchUser !== value ? (
                   <div className="mx-auto mt-5">
                     <TailSpin
