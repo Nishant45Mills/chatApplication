@@ -64,12 +64,6 @@ function Dashboard() {
     setChat(chat);
   };
 
-  const handleDocumentClick = (event) => {
-    if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
-      setDropdownStatus(false); // Close the dropdown if clicked outside
-    }
-  };
-
   //fetching chats
   useEffect(() => {
     setLoggedInId(JSON.parse(localStorage.getItem("user"))._id);
@@ -81,12 +75,13 @@ function Dashboard() {
     fetchUserByName();
   }, [value]);
 
-  //handle dropdown
+  //Toggling chat list dropdownMenu
   useEffect(() => {
-    document.addEventListener("mousedown", handleDocumentClick);
-    return () => {
-      document.removeEventListener("mousedown", handleDocumentClick);
-    };
+    document.addEventListener("mousedown", (event) => {
+      if (!dropdownRef.current.contains(event.target)) {
+        setDropdownStatus(false);
+      }
+    });
   }, []);
 
   //Logout current user
@@ -162,7 +157,6 @@ function Dashboard() {
 
                 <div className="flex justify-between items-center my-2 px-2 relative">
                   <p className="text-3xl">Chats</p>
-                  {/* <i class="fa-solid fa-ellipsis-vertical text-2xl cursor-pointer"></i> */}
 
                   <button
                     onClick={() => setDropdownStatus(!dropdownStatus)}
@@ -171,6 +165,7 @@ function Dashboard() {
                     data-dropdown-placement="bottom-start"
                     className="inline-flex self-center items-center p-2 text-sm font-medium text-center text-gray-900 bg-white rounded-lg hover:bg-gray-100 focus:ring-4 focus:outline-none dark:text-white focus:ring-gray-200 dark:bg-gray-900 dark:hover:bg-gray-800 dark:focus:ring-gray-600"
                     type="button"
+                    ref={dropdownRef}
                   >
                     <svg
                       className="w-4 h-4 text-gray-500 dark:text-gray-400"
@@ -184,7 +179,6 @@ function Dashboard() {
                   </button>
 
                   <div
-                    ref={dropdownRef}
                     id="dropdownDots"
                     className={`${
                       !dropdownStatus ? "hidden" : ""
