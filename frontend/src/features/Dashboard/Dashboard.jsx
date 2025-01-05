@@ -6,6 +6,7 @@ import { useDebounce } from "use-debounce";
 import { TailSpin } from "react-loader-spinner";
 import RohitImage from "../../../public/Rohit.png";
 import { toast } from "react-toastify";
+import Modal from "../../components/common/Modal";
 
 function Dashboard() {
   const { user, isAuthenticated, logout } = useAuth0();
@@ -16,6 +17,7 @@ function Dashboard() {
   const [searchUser, setSearchUser] = useState("");
   const [value] = useDebounce(searchUser, 800);
   const [selectName, setSelectName] = useState(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
   const inputRef = useRef(null);
   const dropdownRef = useRef(null);
   const navigate = useNavigate();
@@ -64,6 +66,10 @@ function Dashboard() {
     setChat(chat);
   };
 
+  const handleDecline = ()=>{
+    setIsModalOpen(false);
+  }
+
   //fetching chats
   useEffect(() => {
     setLoggedInId(JSON.parse(localStorage.getItem("user"))._id);
@@ -76,13 +82,13 @@ function Dashboard() {
   }, [value]);
 
   //Toggling chat list dropdownMenu
-  useEffect(() => {
-    document.addEventListener("mousedown", (event) => {
-      if (!dropdownRef.current.contains(event.target)) {
-        setDropdownStatus(false);
-      }
-    });
-  }, []);
+  // useEffect(() => {
+  //   document.addEventListener("mousedown", (event) => {
+  //     if (!dropdownRef.current.contains(event.target)) {
+  //       setDropdownStatus(false);
+  //     }
+  //   });
+  // }, []);
 
   //Logout current user
   const logOut = () => {
@@ -161,8 +167,6 @@ function Dashboard() {
                   <button
                     onClick={() => setDropdownStatus(!dropdownStatus)}
                     id="dropdownMenuIconButton"
-                    data-dropdown-toggle="dropdownDots"
-                    data-dropdown-placement="bottom-start"
                     className="inline-flex self-center items-center p-2 text-sm font-medium text-center text-gray-900 bg-white rounded-lg hover:bg-gray-100 focus:ring-4 focus:outline-none dark:text-white focus:ring-gray-200 dark:bg-gray-900 dark:hover:bg-gray-800 dark:focus:ring-gray-600"
                     type="button"
                     ref={dropdownRef}
@@ -180,9 +184,10 @@ function Dashboard() {
 
                   <div
                     id="dropdownDots"
+                    onClick={() => setDropdownStatus(false)}
                     className={`${
                       !dropdownStatus ? "hidden" : ""
-                    } absolute z-10 top-10 right-2  bg-white divide-y divide-gray-100 rounded-lg shadow w-44 dark:bg-gray-700 dark:divide-gray-600`}
+                    } absolute z-10 top-10 right-2  bg-white divide-y divide-gray-100 rounded-lg fixed shadow w-44 dark:bg-gray-700 dark:divide-gray-600`}
                   >
                     <ul
                       className="py-2 cursor-pointer text-sm text-gray-700 dark:text-gray-200"
@@ -190,17 +195,14 @@ function Dashboard() {
                     >
                       <li>
                         <a
-                          onClick={() => setDropdownStatus(false)}
+                          onClick={() => setIsModalOpen(true)}
                           className="block text-gray-600 hover:text-gray-600 text-start px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white"
                         >
                           New group
                         </a>
                       </li>
                       <li>
-                        <a
-                          onClick={() => setDropdownStatus(false)}
-                          className="block text-gray-600 hover:text-gray-600 text-start px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white"
-                        >
+                        <a className="block text-gray-600 hover:text-gray-600 text-start px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">
                           Starred messages
                         </a>
                       </li>
@@ -213,14 +215,8 @@ function Dashboard() {
                         </a>
                       </li>
                     </ul>
-                    {/* <div className="py-2">
-                      <a
-                        className="block text-gray-600 px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 dark:hover:bg-gray-600 dark:text-gray-200 dark:hover:text-white"
-                      >
-                        Separated link
-                      </a>
-                    </div> */}
                   </div>
+
                 </div>
                 {searchUser !== value ? (
                   <div className="mx-auto mt-5">
@@ -239,27 +235,27 @@ function Dashboard() {
                   chat.map((data, i) => {
                     const isGroupChat = data.isGroupChat;
                     const displayName =
-                      !isGroupChat && data.users[0]._id === loggedInId
-                        ? data.users[1].username
+                    !isGroupChat && data.users[0]._id === loggedInId
+                    ? data.users[1].username
                         : data.chatName;
-
-                    return (
-                      <div
-                        className={`flex flex-col space-y-1 mt-4 -mx-2`}
-                        key={i}
-                      >
+                        
+                        return (
+                          <div
+                          className={`flex flex-col space-y-1 mt-4 -mx-2`}
+                          key={i}
+                          >
                         <button
                           className={`${
                             selectName == data
-                              ? "bg-indigo-100 focus:outline-none hover:bg-indigo-100"
-                              : ""
+                            ? "bg-indigo-100 focus:outline-none hover:bg-indigo-100"
+                            : ""
                           } ${
                             selectName == null
-                              ? data.isSelected == true
+                            ? data.isSelected == true
                                 ? "bg-indigo-100 focus:outline-none hover:bg-indigo-100"
                                 : ""
-                              : ""
-                          } focus:outline-none hover:border-transparent hover:bg-gray-200 flex flex-row items-center rounded-xl p-2 `}
+                                : ""
+                              } focus:outline-none hover:border-transparent hover:bg-gray-200 flex flex-row items-center rounded-xl p-2 `}
                           onClick={() => setSelectName(data)}
                         >
                           <div className="flex items-center justify-center h-8 w-8 bg-indigo-200 rounded-full">
@@ -269,7 +265,7 @@ function Dashboard() {
                             {displayName}
                           </div>
                         </button>
-                        {/* <button type="button" class="text-gray-900 bg-white border border-gray-300 focus:outline-none hover:bg-gray-100 focus:ring-4 focus:ring-gray-100 font-medium rounded-lg text-sm px-5 py-2.5 me-2 mb-2 dark:bg-gray-800 dark:text-white dark:border-gray-600 dark:hover:bg-gray-700 dark:hover:border-gray-600 dark:focus:ring-gray-700">Light</button> */}
+                        {/* <button type="button" className="text-gray-900 bg-white border border-gray-300 focus:outline-none hover:bg-gray-100 focus:ring-4 focus:ring-gray-100 font-medium rounded-lg text-sm px-5 py-2.5 me-2 mb-2 dark:bg-gray-800 dark:text-white dark:border-gray-600 dark:hover:bg-gray-700 dark:hover:border-gray-600 dark:focus:ring-gray-700">Light</button> */}
                       </div>
                     );
                   })
@@ -277,9 +273,9 @@ function Dashboard() {
                   user1.map((data, i) => {
                     return (
                       <div
-                        className="flex flex-col space-y-1 mt-4 -mx-2"
-                        key={i}
-                        onClick={() => createChat(data._id)}
+                      className="flex flex-col space-y-1 mt-4 -mx-2"
+                      key={i}
+                      onClick={() => createChat(data._id)}
                       >
                         <button className="flex flex-row items-center hover:bg-gray-100 rounded-xl p-2">
                           <div className="flex items-center justify-center h-8 w-8 bg-indigo-200 rounded-full">
@@ -414,7 +410,7 @@ function Dashboard() {
                             </div>
                             {/* <div className="text-xs bottom-0 right-0 -mb-5 mr-2 text-gray-500">
                               Seen
-                            </div> */}
+                              </div> */}
                           </div>
                         </div>
                       </div>
@@ -570,6 +566,7 @@ function Dashboard() {
           </div>
         </div>
       </div>
+      <Modal isOpen={isModalOpen} onDecline={handleDecline} />
     </>
   );
 }

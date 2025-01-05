@@ -9,6 +9,7 @@ import { ProtectedRoute, PublicRoute } from "./utils/AuthRoutes.jsx";
 function App() {
   return (
     <>
+
       <Routes>
         <Route path="/" element={<Navigate to="/login" />} />
         <Route
