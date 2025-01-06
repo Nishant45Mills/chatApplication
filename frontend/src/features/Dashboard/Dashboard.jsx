@@ -12,10 +12,14 @@ function Dashboard() {
   const { user, isAuthenticated, logout } = useAuth0();
   const [chat, setChat] = useState([]);
   const [user1, setUser1] = useState([]);
+  const [user2, setUser2] = useState([]);
   const [dropdownStatus, setDropdownStatus] = useState(false);
   const [loggedInId, setLoggedInId] = useState("");
   const [searchUser, setSearchUser] = useState("");
+  const [searchUser1, setSearchUser1] = useState("");
   const [value] = useDebounce(searchUser, 800);
+  const [value1] = useDebounce(searchUser1, 800);
+
   const [selectName, setSelectName] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const inputRef = useRef(null);
@@ -28,6 +32,7 @@ function Dashboard() {
       .then((res) => {
         res.data.chats[0].isSelected = true;
         setChat(res.data.chats);
+        setUser1([]);
       })
       .catch((error) => {
         console.log(error);
@@ -39,6 +44,18 @@ function Dashboard() {
     secureGet(`/user?search=${searchUser}`)
       .then((res) => {
         setUser1(res.data.user);
+      })
+      .catch((error) => {
+        console.log(error);
+      });
+  };
+
+  const fetchUserByName1 = () => {
+    console.log();
+    if (searchUser1 == "") return;
+    secureGet(`/user?search=${searchUser1}`)
+      .then((res) => {
+        setUser2(res.data.user);
       })
       .catch((error) => {
         console.log(error);
@@ -66,9 +83,16 @@ function Dashboard() {
     setChat(chat);
   };
 
-  const handleDecline = ()=>{
+  const handleDecline = () => {
     setIsModalOpen(false);
-  }
+    setUser2([])
+
+  };
+
+  const handleClose = () => {
+    setIsModalOpen(false);
+    setUser2([])
+  };
 
   //fetching chats
   useEffect(() => {
@@ -80,6 +104,10 @@ function Dashboard() {
   useEffect(() => {
     fetchUserByName();
   }, [value]);
+
+  useEffect(() => {
+    fetchUserByName1();
+  }, [value1]);
 
   //Toggling chat list dropdownMenu
   // useEffect(() => {
@@ -216,7 +244,6 @@ function Dashboard() {
                       </li>
                     </ul>
                   </div>
-
                 </div>
                 {searchUser !== value ? (
                   <div className="mx-auto mt-5">
@@ -235,27 +262,27 @@ function Dashboard() {
                   chat.map((data, i) => {
                     const isGroupChat = data.isGroupChat;
                     const displayName =
-                    !isGroupChat && data.users[0]._id === loggedInId
-                    ? data.users[1].username
+                      !isGroupChat && data.users[0]._id === loggedInId
+                        ? data.users[1].username
                         : data.chatName;
-                        
-                        return (
-                          <div
-                          className={`flex flex-col space-y-1 mt-4 -mx-2`}
-                          key={i}
-                          >
+
+                    return (
+                      <div
+                        className={`flex flex-col space-y-1 mt-4 -mx-2`}
+                        key={i}
+                      >
                         <button
                           className={`${
                             selectName == data
-                            ? "bg-indigo-100 focus:outline-none hover:bg-indigo-100"
-                            : ""
+                              ? "bg-indigo-100 focus:outline-none hover:bg-indigo-100"
+                              : ""
                           } ${
                             selectName == null
-                            ? data.isSelected == true
+                              ? data.isSelected == true
                                 ? "bg-indigo-100 focus:outline-none hover:bg-indigo-100"
                                 : ""
-                                : ""
-                              } focus:outline-none hover:border-transparent hover:bg-gray-200 flex flex-row items-center rounded-xl p-2 `}
+                              : ""
+                          } focus:outline-none hover:border-transparent hover:bg-gray-200 flex flex-row items-center rounded-xl p-2 `}
                           onClick={() => setSelectName(data)}
                         >
                           <div className="flex items-center justify-center h-8 w-8 bg-indigo-200 rounded-full">
@@ -273,14 +300,16 @@ function Dashboard() {
                   user1.map((data, i) => {
                     return (
                       <div
-                      className="flex flex-col space-y-1 mt-4 -mx-2"
-                      key={i}
-                      onClick={() => createChat(data._id)}
+                        className="flex flex-col space-y-1 mt-4 -mx-2"
+                        key={i}
+                        onClick={() => createChat(data._id)}
                       >
                         <button className="flex flex-row items-center hover:bg-gray-100 rounded-xl p-2">
-                          <div className="flex items-center justify-center h-8 w-8 bg-indigo-200 rounded-full">
-                            H
-                          </div>
+                        <img
+                          className="w-10 h-10 rounded-full"
+                          src={data.image}
+                          alt=""
+                        />
                           <div className="ml-2 text-sm font-semibold">
                             {data.username}
                           </div>
@@ -566,7 +595,71 @@ function Dashboard() {
           </div>
         </div>
       </div>
-      <Modal isOpen={isModalOpen} onDecline={handleDecline} />
+      <Modal
+        isOpen={isModalOpen}
+        onDecline={handleDecline}
+        isClose={handleClose}
+        title="Create group"
+        content={
+          <form autoComplete="off">
+            <div className="mb-5 w-96">
+              <input
+                type="text"
+                id="name"
+                placeholder="Chat name"
+                className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
+                required
+              />
+            </div>
+
+            <div className="mb-5 w-96">
+              <input
+                onKeyUp={(event) => setSearchUser1(event.target.value)}
+                type="text"
+                id="user"
+                placeholder="Search user"
+                className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
+                required
+              />
+
+              {searchUser1 !== value1 ? (
+                <div className="mx-auto flex justify-center mt-5">
+                  <TailSpin
+                    visible={true}
+                    height="40"
+                    width="40"
+                    color="#4fa94d"
+                    ariaLabel="tail-spin-loading"
+                    radius="1"
+                    wrapperStyle={{}}
+                    wrapperClass=""
+                  />
+                </div>
+              ) : (
+                user2.map((data, i) => {
+                  return (
+                    <div key={i}>
+                      <div className="flex items-center gap-8 mt-4 bg-gray-200 p-1 cursor-pointer">
+                        <img
+                          className="w-10 h-10 rounded-full"
+                          src={data.image}
+                          alt=""
+                        />
+                        <div className="text-start font-medium dark:text-white">
+                          <div>{data.username}</div>
+                          <div className="text-sm text-gray-500 dark:text-gray-400">
+                            Joined in August 2014
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })
+              )}
+            </div>
+          </form>
+        }
+      />
     </>
   );
 }

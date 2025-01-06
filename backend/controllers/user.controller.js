@@ -6,9 +6,9 @@ const getUser = asyncHandler(async (req, res) => {
     ? {
         $or: [
           {
-            username: { $regex: req.query.search, $options: "i" },
+            username: { $regex: `^${req.query.search}`, $options: "i" },
           },
-          { email: { $regex: req.query.search, $options: "i" } },
+          { email: { $regex: `^${req.query.search}`, $options: "i" } },
         ],
       }
     : {};
@@ -19,4 +19,10 @@ const getUser = asyncHandler(async (req, res) => {
   res.json({ user });
 });
 
-module.exports = { getUser };
+const uploadImage = asyncHandler(async (req, res) => {
+  const { filename, path } = req.file;
+
+  res.json({ name: filename, image: path });
+});
+
+module.exports = { getUser, uploadImage };

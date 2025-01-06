@@ -6,6 +6,14 @@ function securePost(url, payload) {
   return axios.post(`${baseUrl}${url}`, payload);
 }
 
+function registerPost(url, payload) {
+  return axios.post(`${baseUrl}${url}`, payload, {
+    headers: {
+      "Content-Type": "multipart/form-data",
+    },
+  });
+}
+
 function secureGet(url) {
   const headers = {
     Authorization: `Bearer ${JSON.parse(localStorage.getItem("token"))}`,
@@ -22,4 +30,4 @@ function post(url, payload) {
   return axios.post(`${baseUrl}${url}`, payload, { headers });
 }
 
-export { securePost, secureGet, post };
+export { securePost, secureGet, registerPost, post };

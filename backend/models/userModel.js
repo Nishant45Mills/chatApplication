@@ -15,6 +15,10 @@ const userSchema = mongoose.Schema({
     type: String,
     required: true,
   },
+  image:{
+    type:String,
+    default:'https://i.pinimg.com/originals/d4/29/1e/d4291ea760fcbf77ef282cb83ab7127b.jpg'
+  }
 });
 userSchema.methods.matchPassword = async function (enterPassword) {
   return await bcrypt.compare(enterPassword, this.password);
