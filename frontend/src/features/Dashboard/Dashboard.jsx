@@ -19,17 +19,21 @@ function Dashboard() {
   const [searchUser1, setSearchUser1] = useState("");
   const [value] = useDebounce(searchUser, 800);
   const [value1] = useDebounce(searchUser1, 800);
-
+  const [userList, setUserList] = useState([]);
+  const [chatName, setChatName] = useState("");
   const [selectName, setSelectName] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const inputRef = useRef(null);
   const dropdownRef = useRef(null);
+  const userInput = useRef(null);
   const navigate = useNavigate();
 
   //fetching chats API call
   const fetchChats = () => {
     secureGet(`/chat`)
       .then((res) => {
+        console.log(res.data.chats);
+
         res.data.chats[0].isSelected = true;
         setChat(res.data.chats);
         setUser1([]);
@@ -55,6 +59,8 @@ function Dashboard() {
     if (searchUser1 == "") return;
     secureGet(`/user?search=${searchUser1}`)
       .then((res) => {
+        console.log(res.data.user);
+
         setUser2(res.data.user);
       })
       .catch((error) => {
@@ -77,21 +83,47 @@ function Dashboard() {
       });
   };
 
+  const createGroup = () => {
+    let userId = [];
+    userList.map((data) => {
+      userId.push(data._id);
+    });
+    let Obj = {
+      name: chatName,
+      user: userId,
+    };
+    post("/chat/group", Obj)
+      .then((result) => {
+        console.log(result);
+        setIsModalOpen(false);
+        fetchChats();
+      })
+      .catch((error) => {
+        console.log(error);
+      });
+  };
+
   const selectChat = (index) => {
-    console.log(index);
     chat[index].isSelected = true;
     setChat(chat);
   };
 
   const handleDecline = () => {
     setIsModalOpen(false);
-    setUser2([])
-
+    setUser2([]);
   };
 
   const handleClose = () => {
     setIsModalOpen(false);
-    setUser2([])
+    setUser2([]);
+  };
+
+  const addUser = (user) => {
+    userList.push(user);
+    setUser2([]);
+    setSearchUser1("");
+    userInput.current.value = "";
+    setUserList(userList);
   };
 
   //fetching chats
@@ -117,6 +149,16 @@ function Dashboard() {
   //     }
   //   });
   // }, []);
+
+  const removeUser = (index) => {
+    userList.splice(index, 1);
+    console.log(userList);
+    setUserList(userList);
+  };
+  const removeUserDemo = (idx) => {
+    userList.splice(idx, 1);
+    setUserList([...userList]);
+  };
 
   //Logout current user
   const logOut = () => {
@@ -266,6 +308,10 @@ function Dashboard() {
                         ? data.users[1].username
                         : data.chatName;
 
+                    const avtar =
+                      !isGroupChat && data.users[0]._id === loggedInId
+                        ? data.users[1].image
+                        : "H";
                     return (
                       <div
                         className={`flex flex-col space-y-1 mt-4 -mx-2`}
@@ -286,7 +332,12 @@ function Dashboard() {
                           onClick={() => setSelectName(data)}
                         >
                           <div className="flex items-center justify-center h-8 w-8 bg-indigo-200 rounded-full">
-                            H
+                            <img
+                              className="rounded-full"
+                              src={avtar}
+                              alt=""
+                              style={{ width: "100%", height: "100%" }}
+                            />
                           </div>
                           <div className="ml-2 text-sm font-semibold">
                             {displayName}
@@ -305,11 +356,11 @@ function Dashboard() {
                         onClick={() => createChat(data._id)}
                       >
                         <button className="flex flex-row items-center hover:bg-gray-100 rounded-xl p-2">
-                        <img
-                          className="w-10 h-10 rounded-full"
-                          src={data.image}
-                          alt=""
-                        />
+                          <img
+                            className="w-10 h-10 rounded-full"
+                            src={data.image}
+                            alt=""
+                          />
                           <div className="ml-2 text-sm font-semibold">
                             {data.username}
                           </div>
@@ -348,7 +399,11 @@ function Dashboard() {
                         <div className="font-medium dark:text-white text-start">
                           <div>
                             {selectName == null
-                              ? chat[0]?.users[1]?.username
+                              ? chat[0]?.isGroupChat
+                                ? chat[0]?.chatName
+                                : chat[0]?.users[1]?.username
+                              : selectName.isGroupChat
+                              ? selectName.chatName
                               : selectName.users[1]?.username}
                           </div>
                           <div className="text-sm text-gray-500 dark:text-gray-400">
@@ -599,11 +654,13 @@ function Dashboard() {
         isOpen={isModalOpen}
         onDecline={handleDecline}
         isClose={handleClose}
+        submitOnAdd={createGroup}
         title="Create group"
         content={
           <form autoComplete="off">
             <div className="mb-5 w-96">
               <input
+                onKeyUp={(e) => setChatName(e.target.value)}
                 type="text"
                 id="name"
                 placeholder="Chat name"
@@ -620,6 +677,7 @@ function Dashboard() {
                 placeholder="Search user"
                 className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
                 required
+                ref={userInput}
               />
 
               {searchUser1 !== value1 ? (
@@ -635,10 +693,10 @@ function Dashboard() {
                     wrapperClass=""
                   />
                 </div>
-              ) : (
+              ) : searchUser1 !== "" ? (
                 user2.map((data, i) => {
                   return (
-                    <div key={i}>
+                    <div key={i} onClick={() => addUser(data)}>
                       <div className="flex items-center gap-8 mt-4 bg-gray-200 p-1 cursor-pointer">
                         <img
                           className="w-10 h-10 rounded-full"
@@ -655,6 +713,44 @@ function Dashboard() {
                     </div>
                   );
                 })
+              ) : (
+                <div
+                  id="alert-1"
+                  className="flex flex-wrap gap-3 items-center p-2 mt-3 mb-4 rounded-lg dark:bg-gray-800 dark:text-blue-400"
+                  role="alert"
+                >
+                  {userList.map((data, i) => {
+                    return (
+                      <div key={i} className="p-1.5 bg-blue-50 rounded-md">
+                        <span className=" text-sm font-medium text-blue-800">
+                          {data.username}
+                        </span>
+                        <button
+                          type="button"
+                          className=" -my-1.5 bg-blue-50 text-blue-500 rounded-lg focus:outline-none  p-1.5 border-none  inline-flex items-center justify-center h-8 w-8 dark:bg-gray-800 dark:text-blue-400 dark:hover:bg-gray-700"
+                          aria-label="Close"
+                          onClick={() => removeUserDemo(i)}
+                        >
+                          <svg
+                            className="w-3 h-3"
+                            aria-hidden="true"
+                            xmlns="http://www.w3.org/2000/svg"
+                            fill="none"
+                            viewBox="0 0 14 14"
+                          >
+                            <path
+                              stroke="currentColor"
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth="2"
+                              d="m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6"
+                            />
+                          </svg>
+                        </button>
+                      </div>
+                    );
+                  })}
+                </div>
               )}
             </div>
           </form>

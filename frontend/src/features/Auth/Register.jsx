@@ -2,9 +2,10 @@ import React, { useEffect, useRef, useState } from "react";
 import { useForm } from "react-hook-form";
 import { NavLink, useNavigate } from "react-router-dom";
 import axios from "axios";
-import { registerPost } from "../../HttpService/APIService";
+import { registerPost, securePost } from "../../HttpService/APIService";
 import { toast } from "react-toastify";
 import { useAuth0 } from "@auth0/auth0-react";
+import { Oval } from "react-loader-spinner";
 
 function Register() {
   const {
@@ -12,11 +13,13 @@ function Register() {
     handleSubmit,
     watch,
     reset,
-    formState: { errors },
+    formState: { errors, isValid },
   } = useForm();
 
   const selectImage = useRef(null);
-  // const [file,setFile] = useState(null);
+  const [imageStatus, setImageStatus] = useState(false);
+  const [imageInfo, setImageInfo] = useState(null);
+
   const { user, isAuthenticated, loginWithRedirect, logout } = useAuth0();
 
   const selectAvtar = () => {
@@ -27,9 +30,8 @@ function Register() {
 
   const onsubmit = (data) => {
     delete data.confirmPassword;
-    console.log(formData);
-
-    registerPost("/auth/register", data)
+    data.image = imageInfo.image;
+    securePost("/auth/register", data)
       .then((result) => {
         console.log(result);
         toast.success("User Register successfully");
@@ -40,15 +42,16 @@ function Register() {
   };
 
   const uploadImage = (file) => {
+    setImageStatus(true);
     const formData = new FormData();
     formData.append("file", file);
     registerPost("/user/upload", formData)
-    .then((result) => {
-      console.log(result);
-      toast.success("Upload image successfully");
-    })
-    .catch((error) => console.log(error));
-    
+      .then((result) => {
+        setImageInfo(result.data);
+        setImageStatus(false);
+        toast.success("Upload image successfully");
+      })
+      .catch((error) => console.log(error));
   };
 
   return (
@@ -185,13 +188,31 @@ function Register() {
                   <div className="w-20 rounded-full">
                     <img
                       className="rounded-full"
-                      src="https://img.freepik.com/premium-vector/default-avatar-profile-icon-social-media-user-image-gray-avatar-icon-blank-profile-silhouette-vector-illustration_561158-3467.jpg"
+                      src={
+                        imageInfo
+                          ? imageInfo.image
+                          : "https://img.freepik.com/premium-vector/default-avatar-profile-icon-social-media-user-image-gray-avatar-icon-blank-profile-silhouette-vector-illustration_561158-3467.jpg"
+                      }
                       alt=""
                     />
                   </div>
                   <div className="absolute  inline-flex items-center justify-center w-10 h-10 text-xs font-bold text-white bg-red-500 border-2 border-white rounded-full -top-2 -end-2 dark:border-gray-900">
                     <i className="fa-solid fa-camera"></i>
                   </div>
+                  {imageStatus && (
+                    <div className="absolute top-8 left-8">
+                      <Oval
+                        visible={true}
+                        height="30"
+                        width="30"
+                        color="#4fa94d"
+                        ariaLabel="oval-loading"
+                        wrapperStyle={{}}
+                        wrapperClass=""
+                        strokeWidth="6"
+                      />
+                    </div>
+                  )}
                 </button>
                 <input
                   ref={selectImage}
@@ -202,7 +223,11 @@ function Register() {
                   onChange={(e) => uploadImage(e.target.files[0])}
                 />
 
-                <button className="bg-sky-400 w-full" type="submit">
+                <button
+                  disabled={!isValid || !imageInfo}
+                  className="bg-sky-400 w-full"
+                  type="submit"
+                >
                   Sign Up
                 </button>
 

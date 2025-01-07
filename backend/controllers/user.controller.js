@@ -15,7 +15,9 @@ const getUser = asyncHandler(async (req, res) => {
 
   const user = await userModel
     .find(keyword)
-    .find({ _id: { $ne: req.user._id } });
+    .find({ _id: { $ne: req.user._id } })
+    .select("-password");
+
   res.json({ user });
 });
 
