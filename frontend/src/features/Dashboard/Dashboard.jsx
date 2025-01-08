@@ -22,21 +22,53 @@ function Dashboard() {
   const [userList, setUserList] = useState([]);
   const [chatName, setChatName] = useState("");
   const [selectName, setSelectName] = useState(null);
+  const [message, setMessage] = useState("");
+  const [messageList, setMessageList] = useState([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const inputRef = useRef(null);
   const dropdownRef = useRef(null);
   const userInput = useRef(null);
+  const messageRef = useRef(null);
   const navigate = useNavigate();
 
   //fetching chats API call
   const fetchChats = () => {
     secureGet(`/chat`)
       .then((res) => {
-        console.log(res.data.chats);
-
         res.data.chats[0].isSelected = true;
         setChat(res.data.chats);
+        setSelectName(res.data.chats[0]);
         setUser1([]);
+      })
+      .catch((error) => {
+        console.log(error);
+      });
+  };
+
+  const fetchMessage = () => {
+    if (selectName !== null) {
+      secureGet(`/message/${selectName?._id}`)
+        .then((result) => {
+          console.log(result.data);
+          
+          setMessageList(result.data);
+        })
+        .catch((error) => {
+          console.log(error);
+        });
+    }
+  };
+
+  const sendMessage = () => {
+    let textMessage = {
+      chatId: selectName._id,
+      content: message,
+    };
+
+    post("/message", textMessage)
+      .then((result) => {
+        messageRef.current.value = "";
+        fetchMessage();
       })
       .catch((error) => {
         console.log(error);
@@ -55,12 +87,9 @@ function Dashboard() {
   };
 
   const fetchUserByName1 = () => {
-    console.log();
     if (searchUser1 == "") return;
     secureGet(`/user?search=${searchUser1}`)
       .then((res) => {
-        console.log(res.data.user);
-
         setUser2(res.data.user);
       })
       .catch((error) => {
@@ -70,10 +99,8 @@ function Dashboard() {
 
   //creating new chat
   const createChat = (userId) => {
-    console.log(userId);
     post(`/chat`, { userId })
       .then((result) => {
-        console.log(result);
         inputRef.current.value = "";
         setSearchUser("");
         fetchChats();
@@ -94,7 +121,6 @@ function Dashboard() {
     };
     post("/chat/group", Obj)
       .then((result) => {
-        console.log(result);
         setIsModalOpen(false);
         fetchChats();
       })
@@ -141,6 +167,10 @@ function Dashboard() {
     fetchUserByName1();
   }, [value1]);
 
+  useEffect(() => {
+    fetchMessage();
+  }, [selectName]);
+
   //Toggling chat list dropdownMenu
   // useEffect(() => {
   //   document.addEventListener("mousedown", (event) => {
@@ -152,12 +182,19 @@ function Dashboard() {
 
   const removeUser = (index) => {
     userList.splice(index, 1);
-    console.log(userList);
     setUserList(userList);
   };
   const removeUserDemo = (idx) => {
-    userList.splice(idx, 1);
-    setUserList([...userList]);
+    let user = [...userList];
+    user.splice(idx, 1);
+    setUserList(user);
+  };
+
+  const sendTextMessage = (event) => {
+    if (event.key == "Enter") {
+      sendMessage();
+    }
+    setMessage(event.target.value);
   };
 
   //Logout current user
@@ -171,7 +208,7 @@ function Dashboard() {
   return (
     <>
       <div className="flex w-screen h-screen bg-sky-300 content-center items-center">
-        <div className="flex h-screen antialiased text-gray-800">
+        <div className="flex h-screen antialiased text-gray-800 w-full">
           <div className="flex flex-row h-full w-full overflow-x-hidden">
             <div className="flex flex-col py-8 pl-6 pr-2 w-64 bg-white flex-shrink-0">
               <div className="flex flex-row items-center justify-center h-12 w-full">
@@ -388,7 +425,7 @@ function Dashboard() {
             <div className="flex flex-col flex-auto h-full p-6">
               <div className="flex flex-col flex-auto flex-shrink-0 rounded-2xl bg-gray-100 h-full p-4 ">
                 <div className="flex flex-col h-full overflow-x-auto mb-4">
-                  <div className="flex flex-col h-full">
+                  <div className="relative flex flex-col h-full">
                     <div className="p-3 rounded-lg w-full bg-gray-300 flex justify-between sticky top-0">
                       <div className="flex items-center gap-4">
                         <img
@@ -423,160 +460,48 @@ function Dashboard() {
                         </div>
                       </div>
                     </div>
-                    <div className="grid grid-cols-12 gap-y-2 mt-20">
-                      <div className="col-start-1 col-end-8 p-3 rounded-lg">
-                        <div className="flex flex-row items-center">
+                    <div className="absolute bottom-0 w-full grid grid-cols-12 gap-y-2 mt-20">
+                    
+                      {messageList.map((data, i) => {
+                        return (
+                          <div
+                            key={i}
+                            className="col-start-1 col-end-13 p-3 rounded-lg"
+                          >
+                            {data.sender._id===loggedInId ? 
+                          
+                          <div className="flex items-center justify-start flex-row-reverse">
                           <div className="flex items-center justify-center h-10 w-10 rounded-full bg-indigo-500 flex-shrink-0">
-                            A
-                          </div>
-                          <div className=" ml-3 text-sm bg-white py-2 px-4 shadow rounded-xl">
-                            <div>Hey How are you today?</div>
-                          </div>
-                        </div>
-                      </div>
-                      <div className="col-start-1 col-end-8 p-3 rounded-lg">
-                        <div className="flex flex-row items-center">
-                          <div className="flex items-center justify-center h-10 w-10 rounded-full bg-indigo-500 flex-shrink-0">
-                            A
-                          </div>
-                          <div className=" ml-3 text-sm bg-white py-2 px-4 shadow rounded-xl">
-                            <div>
-                              Lorem ipsum dolor sit amet, consectetur
-                              adipisicing elit. Vel ipsa commodi illum saepe
-                              numquam maxime asperiores voluptate sit, minima
-                              perspiciatis.
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                      <div className="col-start-6 col-end-13 p-3 rounded-lg">
-                        <div className="flex items-center justify-start flex-row-reverse">
-                          <div className="flex items-center justify-center h-10 w-10 rounded-full bg-indigo-500 flex-shrink-0">
-                            A
+                            <img
+                              src={data.sender.image}
+                              className="rounded-full w-full h-full"
+                              alt=""
+                            />
                           </div>
                           <div className=" mr-3 text-sm bg-indigo-100 py-2 px-4 shadow rounded-xl">
-                            <div>I'm ok what about you?</div>
+                            <div>{data.content}</div>
                           </div>
                         </div>
-                      </div>
-                      <div className="col-start-6 col-end-13 p-3 rounded-lg">
-                        <div className="flex items-center justify-start flex-row-reverse">
+                          :    <div className="col-start-1 col-end-8 p-3 rounded-lg">
+                          <div className="flex flex-row items-center">
                           <div className="flex items-center justify-center h-10 w-10 rounded-full bg-indigo-500 flex-shrink-0">
-                            A
-                          </div>
-                          <div className=" mr-3 text-sm bg-indigo-100 py-2 px-4 shadow rounded-xl">
-                            <div>
-                              Lorem ipsum dolor sit, amet consectetur
-                              adipisicing. ?
+
+                          <img
+                              src={data.sender.image}
+                              className="rounded-full w-full h-full"
+                              alt=""
+                            />
+                            </div>
+                            <div className=" ml-3 text-sm bg-white py-2 px-4 shadow rounded-xl">
+                              <div>{data.content}</div>
                             </div>
                           </div>
                         </div>
-                      </div>
-                      <div className="col-start-1 col-end-8 p-3 rounded-lg">
-                        <div className="flex flex-row items-center">
-                          <div className="flex items-center justify-center h-10 w-10 rounded-full bg-indigo-500 flex-shrink-0">
-                            A
+                          }
+                           
                           </div>
-                          <div className=" ml-3 text-sm bg-white py-2 px-4 shadow rounded-xl">
-                            <div>Lorem ipsum dolor sit amet !</div>
-                          </div>
-                        </div>
-                      </div>
-                      <div className="col-start-6 col-end-13 p-3 rounded-lg">
-                        <div className="flex items-center justify-start flex-row-reverse">
-                          <div className="flex items-center justify-center h-10 w-10 rounded-full bg-indigo-500 flex-shrink-0">
-                            A
-                          </div>
-                          <div className=" mr-3 text-sm bg-indigo-100 py-2 px-4 shadow rounded-xl">
-                            <div>
-                              Lorem ipsum dolor sit, amet consectetur
-                              adipisicing. ?
-                            </div>
-                            {/* <div className="text-xs bottom-0 right-0 -mb-5 mr-2 text-gray-500">
-                              Seen
-                              </div> */}
-                          </div>
-                        </div>
-                      </div>
-                      <div className="col-start-1 col-end-8 p-3 rounded-lg">
-                        <div className="flex flex-row items-center">
-                          <div className="flex items-center justify-center h-10 w-10 rounded-full bg-indigo-500 flex-shrink-0">
-                            A
-                          </div>
-                          <div className=" ml-3 text-sm bg-white py-2 px-4 shadow rounded-xl">
-                            <div>
-                              Lorem ipsum dolor sit amet consectetur adipisicing
-                              elit. Perspiciatis, in.
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                      <div className="col-start-1 col-end-8 p-3 rounded-lg">
-                        <div className="flex flex-row items-center">
-                          <div className="flex items-center justify-center h-10 w-10 rounded-full bg-indigo-500 flex-shrink-0">
-                            A
-                          </div>
-                          <div className=" ml-3 text-sm bg-white py-2 px-4 shadow rounded-xl">
-                            <div className="flex flex-row items-center">
-                              <button className="flex items-center justify-center bg-indigo-600 hover:bg-indigo-800 rounded-full h-8 w-10">
-                                <svg
-                                  className="w-6 h-6 text-white"
-                                  fill="none"
-                                  stroke="currentColor"
-                                  viewBox="0 0 24 24"
-                                  xmlns="http://www.w3.org/2000/svg"
-                                >
-                                  <path
-                                    strokeLinecap="round"
-                                    strokeLinejoin="round"
-                                    strokeWidth="1.5"
-                                    d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"
-                                  ></path>
-                                  <path
-                                    strokeLinecap="round"
-                                    strokeLinejoin="round"
-                                    strokeWidth="1.5"
-                                    d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-                                  ></path>
-                                </svg>
-                              </button>
-                              <div className="flex flex-row items-center space-x-px ml-4">
-                                <div className="h-2 w-1 bg-gray-500 rounded-lg"></div>
-                                <div className="h-2 w-1 bg-gray-500 rounded-lg"></div>
-                                <div className="h-4 w-1 bg-gray-500 rounded-lg"></div>
-                                <div className="h-8 w-1 bg-gray-500 rounded-lg"></div>
-                                <div className="h-8 w-1 bg-gray-500 rounded-lg"></div>
-                                <div className="h-10 w-1 bg-gray-500 rounded-lg"></div>
-                                <div className="h-10 w-1 bg-gray-500 rounded-lg"></div>
-                                <div className="h-12 w-1 bg-gray-500 rounded-lg"></div>
-                                <div className="h-10 w-1 bg-gray-500 rounded-lg"></div>
-                                <div className="h-6 w-1 bg-gray-500 rounded-lg"></div>
-                                <div className="h-5 w-1 bg-gray-500 rounded-lg"></div>
-                                <div className="h-4 w-1 bg-gray-500 rounded-lg"></div>
-                                <div className="h-3 w-1 bg-gray-500 rounded-lg"></div>
-                                <div className="h-2 w-1 bg-gray-500 rounded-lg"></div>
-                                <div className="h-2 w-1 bg-gray-500 rounded-lg"></div>
-                                <div className="h-2 w-1 bg-gray-500 rounded-lg"></div>
-                                <div className="h-10 w-1 bg-gray-500 rounded-lg"></div>
-                                <div className="h-2 w-1 bg-gray-500 rounded-lg"></div>
-                                <div className="h-10 w-1 bg-gray-500 rounded-lg"></div>
-                                <div className="h-8 w-1 bg-gray-500 rounded-lg"></div>
-                                <div className="h-8 w-1 bg-gray-500 rounded-lg"></div>
-                                <div className="h-1 w-1 bg-gray-500 rounded-lg"></div>
-                                <div className="h-1 w-1 bg-gray-500 rounded-lg"></div>
-                                <div className="h-2 w-1 bg-gray-500 rounded-lg"></div>
-                                <div className="h-8 w-1 bg-gray-500 rounded-lg"></div>
-                                <div className="h-8 w-1 bg-gray-500 rounded-lg"></div>
-                                <div className="h-2 w-1 bg-gray-500 rounded-lg"></div>
-                                <div className="h-2 w-1 bg-gray-500 rounded-lg"></div>
-                                <div className="h-2 w-1 bg-gray-500 rounded-lg"></div>
-                                <div className="h-2 w-1 bg-gray-500 rounded-lg"></div>
-                                <div className="h-4 w-1 bg-gray-500 rounded-lg"></div>
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
+                        );
+                      })}
                     </div>
                   </div>
                 </div>
@@ -604,6 +529,8 @@ function Dashboard() {
                       <input
                         type="text"
                         className="flex w-full border rounded-xl focus:outline-none focus:border-indigo-300 pl-4 h-10"
+                        onKeyUp={(e) => sendTextMessage(e)}
+                        ref={messageRef}
                       />
                       <button className="absolute flex items-center justify-center h-full w-12 right-0 top-0 text-gray-400 hover:text-gray-600">
                         <svg
@@ -624,7 +551,10 @@ function Dashboard() {
                     </div>
                   </div>
                   <div className="ml-4">
-                    <button className="flex items-center justify-center bg-indigo-500 hover:bg-indigo-600 rounded-xl text-white px-4 py-1 flex-shrink-0">
+                    <button
+                      onClick={sendMessage}
+                      className="flex items-center justify-center bg-indigo-500 hover:bg-indigo-600 rounded-xl text-white px-4 py-1 flex-shrink-0"
+                    >
                       <span>Send</span>
                       <span className="ml-2">
                         <svg
