@@ -7,6 +7,9 @@ import { TailSpin } from "react-loader-spinner";
 import RohitImage from "../../../public/Rohit.png";
 import { toast } from "react-toastify";
 import Modal from "../../components/common/Modal";
+import io from "socket.io-client";
+
+const socket = io("http://localhost:5000");
 
 function Dashboard() {
   const { user, isAuthenticated, logout } = useAuth0();
@@ -24,11 +27,13 @@ function Dashboard() {
   const [selectName, setSelectName] = useState(null);
   const [message, setMessage] = useState("");
   const [messageList, setMessageList] = useState([]);
+  const [messageStatus, setMessageStatus] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const inputRef = useRef(null);
   const dropdownRef = useRef(null);
   const userInput = useRef(null);
   const messageRef = useRef(null);
+  const textRef = useRef(null);
   const navigate = useNavigate();
 
   //fetching chats API call
@@ -36,7 +41,9 @@ function Dashboard() {
     secureGet(`/chat`)
       .then((res) => {
         res.data.chats[0].isSelected = true;
+        console.log(res.data.chats);
         setChat(res.data.chats);
+
         setSelectName(res.data.chats[0]);
         setUser1([]);
       })
@@ -46,11 +53,15 @@ function Dashboard() {
   };
 
   const fetchMessage = () => {
+    console.log(selectName);
+
     if (selectName !== null) {
+      console.log("working well");
+
       secureGet(`/message/${selectName?._id}`)
         .then((result) => {
           console.log(result.data);
-          
+
           setMessageList(result.data);
         })
         .catch((error) => {
@@ -60,13 +71,17 @@ function Dashboard() {
   };
 
   const sendMessage = () => {
+    textRef.current?.scrollIntoView({ behavior: "smooth" });
     let textMessage = {
       chatId: selectName._id,
       content: message,
     };
+    console.log(socket);
+    socket.emit("user-message", message);
 
     post("/message", textMessage)
       .then((result) => {
+        setMessageStatus(!messageStatus);
         messageRef.current.value = "";
         fetchMessage();
       })
@@ -170,6 +185,12 @@ function Dashboard() {
   useEffect(() => {
     fetchMessage();
   }, [selectName]);
+
+  useEffect(() => {
+    socket.on("message", (message) => {
+      fetchMessage();
+    });
+  }, []);
 
   //Toggling chat list dropdownMenu
   // useEffect(() => {
@@ -340,10 +361,11 @@ function Dashboard() {
                 ) : searchUser == "" ? (
                   chat.map((data, i) => {
                     const isGroupChat = data.isGroupChat;
-                    const displayName =
-                      !isGroupChat && data.users[0]._id === loggedInId
+                    const displayName = !isGroupChat
+                      ? data.users[0]._id == loggedInId
                         ? data.users[1].username
-                        : data.chatName;
+                        : data.users[0].username
+                      : data.chatName;
 
                     const avtar =
                       !isGroupChat && data.users[0]._id === loggedInId
@@ -426,7 +448,7 @@ function Dashboard() {
               <div className="flex flex-col flex-auto flex-shrink-0 rounded-2xl bg-gray-100 h-full p-4 ">
                 <div className="flex flex-col h-full overflow-x-auto mb-4">
                   <div className="relative flex flex-col h-full">
-                    <div className="p-3 rounded-lg w-full bg-gray-300 flex justify-between sticky top-0">
+                    <div className="p-3 z-20 rounded-lg w-full bg-gray-300 flex justify-between sticky top-0">
                       <div className="flex items-center gap-4">
                         <img
                           className="w-10 h-10 rounded-full"
@@ -448,7 +470,7 @@ function Dashboard() {
                           </div>
                         </div>
                       </div>
-                      <div className="flex gap-5 text-2xl items-center me-5">
+                      <div className="flex z-10 gap-5 text-2xl items-center me-5">
                         <div className="cursor-pointer">
                           <i className="fa-solid fa-magnifying-glass"></i>
                         </div>
@@ -460,45 +482,43 @@ function Dashboard() {
                         </div>
                       </div>
                     </div>
-                    <div className="absolute bottom-0 w-full grid grid-cols-12 gap-y-2 mt-20">
-                    
+                    <div className="absolute  w-full grid grid-cols-12 gap-y-2 mt-20">
                       {messageList.map((data, i) => {
                         return (
                           <div
+                            ref={textRef}
                             key={i}
                             className="col-start-1 col-end-13 p-3 rounded-lg"
                           >
-                            {data.sender._id===loggedInId ? 
-                          
-                          <div className="flex items-center justify-start flex-row-reverse">
-                          <div className="flex items-center justify-center h-10 w-10 rounded-full bg-indigo-500 flex-shrink-0">
-                            <img
-                              src={data.sender.image}
-                              className="rounded-full w-full h-full"
-                              alt=""
-                            />
-                          </div>
-                          <div className=" mr-3 text-sm bg-indigo-100 py-2 px-4 shadow rounded-xl">
-                            <div>{data.content}</div>
-                          </div>
-                        </div>
-                          :    <div className="col-start-1 col-end-8 p-3 rounded-lg">
-                          <div className="flex flex-row items-center">
-                          <div className="flex items-center justify-center h-10 w-10 rounded-full bg-indigo-500 flex-shrink-0">
-
-                          <img
-                              src={data.sender.image}
-                              className="rounded-full w-full h-full"
-                              alt=""
-                            />
-                            </div>
-                            <div className=" ml-3 text-sm bg-white py-2 px-4 shadow rounded-xl">
-                              <div>{data.content}</div>
-                            </div>
-                          </div>
-                        </div>
-                          }
-                           
+                            {data.sender._id === loggedInId ? (
+                              <div className="flex items-center justify-start flex-row-reverse">
+                                <div className="flex items-center justify-center h-10 w-10 rounded-full bg-indigo-500 flex-shrink-0">
+                                  <img
+                                    src={data.sender.image}
+                                    className="rounded-full w-full h-full"
+                                    alt=""
+                                  />
+                                </div>
+                                <div className=" mr-3 text-sm bg-indigo-100 py-2 px-4 shadow rounded-xl">
+                                  <div>{data.content}</div>
+                                </div>
+                              </div>
+                            ) : (
+                              <div className="col-start-1 col-end-8 p-3 rounded-lg">
+                                <div className="flex flex-row items-center">
+                                  <div className="flex items-center justify-center h-10 w-10 rounded-full bg-indigo-500 flex-shrink-0">
+                                    <img
+                                      src={data.sender.image}
+                                      className="rounded-full w-full h-full"
+                                      alt=""
+                                    />
+                                  </div>
+                                  <div className=" ml-3 text-sm bg-white py-2 px-4 shadow rounded-xl">
+                                    <div>{data.content}</div>
+                                  </div>
+                                </div>
+                              </div>
+                            )}
                           </div>
                         );
                       })}
